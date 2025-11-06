@@ -7,16 +7,10 @@ This document provides the configuration needed to deploy this full-stack MERN a
 ### Basic Configuration
 - **Environment**: `Node`
 - **Root Directory**: `backend`
-- **Build Command**: `cd ../frontend && npm install && npm run build && cd ../backend && npm install`
+- **Build Command**: `npm install && cd ../frontend && npm install && npm run build`
 - **Start Command**: `npm start`
 
-### Alternative Build Command (if the above doesn't work)
-If the multi-line command causes issues, you can use:
-```bash
-cd ../frontend && npm install && npm run build && cd ../backend && npm install
-```
-
-Or create a build script in the root directory and use that instead.
+**Important**: The build command installs backend dependencies first (from the backend directory), then installs frontend dependencies, then builds the frontend. This ensures Vite is available when needed.
 
 ---
 
@@ -90,9 +84,9 @@ Set these in the Render dashboard under "Environment" → "Environment Variables
 
 1. **Build Phase**: 
    - Render runs the build command which:
+     - Installs backend dependencies (from backend directory)
      - Installs frontend dependencies
      - Builds the frontend (creates `frontend/dist/`)
-     - Installs backend dependencies
 
 2. **Start Phase**:
    - Backend starts via `npm start` (runs `node src/server.js`)
