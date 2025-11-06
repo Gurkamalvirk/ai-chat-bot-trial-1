@@ -6,6 +6,8 @@ import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import csrf from 'csurf';
 import rateLimit from 'express-rate-limit';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { connectDb, ensureTtlIndex } from './utils/db.js';
 import { authRouter } from './routes/auth.js';
 import { chatRouter } from './routes/chat.js';
@@ -16,6 +18,9 @@ import { Session } from './models/Session.js';
 import { v4 as uuid } from 'uuid';
 import { withTiming, getMetrics } from './utils/observability.js';
 import { requireAuth } from './middleware/auth.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -31,12 +36,14 @@ app.use(cookieParser());
 app.use(morgan('combined'));
 app.use(withTiming);
 
-app.use(
-	cors({
-		origin: config.corsOrigin,
-		credentials: true,
-	})
-);
+// CORS configuration: allow same-origin in production, or configured origin in development
+const corsOptions = {
+	origin: config.nodeEnv === 'production' 
+		? true // Allow same-origin requests in production
+		: config.corsOrigin,
+	credentials: true,
+};
+app.use(cors(corsOptions));
 
 const limiter = rateLimit({
 	windowMs: config.rateLimitWindowMs,
@@ -63,14 +70,27 @@ app.get('/api/metrics', requireAuth, (req, res) => {
 	res.json(getMetrics());
 });
 
-const port = config.port;
+// Serve static files from the Vite build output
+const frontendDistPath = path.join(__dirname, '../../frontend/dist');
+app.use(express.static(frontendDistPath));
+
+// Catch-all handler: send back React's index.html file for SPA routing
+app.get('*', (req, res) => {
+	// Don't serve index.html for API routes
+	if (req.path.startsWith('/api')) {
+		return res.status(404).json({ error: 'Not found' });
+	}
+	res.sendFile(path.join(frontendDistPath, 'index.html'));
+});
+
+const port = process.env.PORT || config.port;
 
 connectDb()
 	.then(async () => {
 		ensureTtlIndex(Session, 'lastActiveAt', 60 * 60 * 24 * 30);
 		app.listen(port, () => {
 			// eslint-disable-next-line no-console
-			console.log(`Server listening on :${port}`);
+			console.log(`Server listening on port ${port}`);
 		});
 	})
 	.catch((err) => {
