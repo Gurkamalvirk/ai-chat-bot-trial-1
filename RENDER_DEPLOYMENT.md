@@ -10,7 +10,9 @@ This document provides the configuration needed to deploy this full-stack MERN a
 - **Build Command**: `npm install && cd ../frontend && npm install && npm run build`
 - **Start Command**: `npm start`
 
-**Important**: The build command installs backend dependencies first (from the backend directory), then installs frontend dependencies, then builds the frontend. This ensures Vite is available when needed.
+**⚠️ CRITICAL**: Update the Build Command in your Render dashboard to match the command above. The old command (`cd ../frontend && npm install && npm run build && cd ../backend && npm install`) will NOT work correctly.
+
+**Important**: The build command installs backend dependencies first (from the backend directory), then installs frontend dependencies, then builds the frontend. This ensures Vite is available when needed. The build script uses `npx vite build` to ensure proper execution on Render.
 
 ---
 
@@ -113,10 +115,17 @@ Set these in the Render dashboard under "Environment" → "Environment Variables
 - Check that frontend uses relative URLs (`/api/...` not `http://localhost:4000/api/...`)
 - Check environment variables are set correctly
 
+### Build fails with "vite: Permission denied"
+- **IMPORTANT**: Make sure the Build Command in Render dashboard is: `npm install && cd ../frontend && npm install && npm run build`
+- Verify that `vite` is in `dependencies` (not `devDependencies`) in `frontend/package.json`
+- The build script uses `npx vite build` which should resolve permission issues
+- If still failing, try: `npm install && cd ../frontend && npm ci && npm run build`
+
 ### Build fails
 - Ensure Node.js version is 20+ (set in Render if needed)
 - Check that both `frontend/package.json` and `backend/package.json` have valid dependencies
 - Verify the build command paths are correct
+- **Update the Build Command in Render dashboard** - it might still be using the old command
 
 ### Database connection fails
 - Verify `MONGODB_URI` is set correctly
