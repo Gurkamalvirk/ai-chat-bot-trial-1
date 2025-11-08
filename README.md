@@ -4,12 +4,12 @@ Provider-agnostic chat application with streaming SSE, session memory in MongoDB
 
 ## Quickstart
 
-Prereqs: Node 20+, Docker (optional)
+Prereqs: Node 20+, MongoDB
 
 1. Backend
    - cd backend
    - npm install
-   - Create `.env` from env variables in docker-compose or set environment variables
+   - Create `.env` file with environment variables (see backend/README.md for details)
    - npm run seed
    - npm run dev
 
@@ -22,7 +22,7 @@ Backend runs on :4000, frontend on :5173.
 
 ## Environment
 
-See `docker-compose.yml` for environment variables. Do not hardcode API keys. Set `OPENAI_API_KEY` or Dialogflow credentials accordingly.
+See `backend/README.md` for environment variables. Do not hardcode API keys. Set `OPENAI_API_KEY` or Dialogflow credentials accordingly.
 
 To use Gemini, set up a provider adapter similarly to OpenAI (not included by default). Do not commit keys. The user-provided key should be placed in environment variables during runtime only.
 
@@ -37,9 +37,6 @@ To use Gemini, set up a provider adapter similarly to OpenAI (not included by de
 
 ## Tests
 - `npm test` in backend runs unit tests with the Mock provider
-
-## Docker
-- `docker-compose up --build`
 
 ## Notes
 - TTL indexes can be added on `Session.lastActiveAt` per requirements; wire via migrations or at startup.
